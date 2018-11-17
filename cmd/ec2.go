@@ -17,19 +17,25 @@ var ec2Cmd = &cobra.Command{
 
 var instancesCmd = &cobra.Command{
 	Use:   "instances",
-	Short: "Generate report about ec2 instances.",
+	Short: "Generate report about ec2 instances usage.",
 	Run:   ec2Instances,
 }
 
-func ec2Instances(cmd *cobra.Command, args []string) {
-	// Load session from shared config
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
+var ebsCmd = &cobra.Command{
+	Use:     "ebs",
+	Aliases: []string{"storage"},
+	Short:   "Generate report about ebs usage.",
+	Run:     ec2EBS,
+}
+
+func getEC2Client() *ec2.EC2 {
+	return ec2.New(session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
-	}))
+	})))
+}
 
-	// Create new EC2 client
-	ec2Svc := ec2.New(sess)
-
+func ec2Instances(cmd *cobra.Command, args []string) {
+	ec2Svc := getEC2Client()
 	res, err := ec2Svc.DescribeInstances(nil)
 	if err != nil {
 		fmt.Println("Error", err)
@@ -41,7 +47,7 @@ func ec2Instances(cmd *cobra.Command, args []string) {
 	for _, reservation := range res.Reservations {
 		for _, instance := range reservation.Instances {
 			if (*instance.State.Code) == 16 {
-				countByInstanceType[*(instance.InstanceType)] += 1
+				countByInstanceType[*(instance.InstanceType)]++
 			}
 		}
 	}
@@ -66,7 +72,26 @@ func ec2Instances(cmd *cobra.Command, args []string) {
 	fmt.Printf("Total Memory: %.2f GiB\nTotal CPU: %d cores\n", totalMemory, totalCPU)
 }
 
+func ec2EBS(cmd *cobra.Command, args []string) {
+	ec2Svc := getEC2Client()
+	res, err := ec2Svc.DescribeVolumes(nil)
+	if err != nil {
+		fmt.Println("Error", err)
+		os.Exit(1)
+	}
+
+	var total int64
+	for _, volume := range res.Volumes {
+		total += *(volume.Size)
+	}
+
+	fmt.Printf("Volume Count: %d\n", len(res.Volumes))
+	fmt.Printf("Volume Size: %d GiBs\n", total)
+}
+
 func init() {
 	ec2Cmd.AddCommand(instancesCmd)
+	ec2Cmd.AddCommand(ebsCmd)
+
 	rootCmd.AddCommand(ec2Cmd)
 }

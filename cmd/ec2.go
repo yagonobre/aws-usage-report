@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"text/tabwriter"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -41,6 +42,10 @@ func ec2Instances(cmd *cobra.Command, args []string) {
 	if err != nil {
 		fmt.Println("invalid iec-format flag")
 	}
+	verbose, err := cmd.Flags().GetBool("verbose")
+	if err != nil {
+		fmt.Println("invalid verbose flag")
+	}
 
 	ec2Svc := getEC2Client()
 	res, err := ec2Svc.DescribeInstances(nil)
@@ -63,16 +68,29 @@ func ec2Instances(cmd *cobra.Command, args []string) {
 	var totalMemory float64
 	instancesInfo := instances.Instances
 
-	for instanceType, count := range countByInstanceType {
-		fmt.Printf("%s : %d\n", instanceType, count)
-		total += count
+	w := new(tabwriter.Writer)
+	if verbose {
+		w.Init(os.Stdout, 8, 8, 0, '\t', 0)
+		fmt.Fprintf(w, "%s\t%s\t\n", "Instance Type", "Instance Count")
+	}
 
+	for instanceType, count := range countByInstanceType {
+		if verbose {
+			fmt.Fprintf(w, "%s\t%d\t\n", instanceType, count)
+		}
+
+		total += count
 		if instanceInfo, ok := instancesInfo[instanceType]; ok {
 			totalMemory += (instanceInfo.Memory * float64(count))
 			totalCPU += (instanceInfo.VCPU * count)
 		} else {
 			fmt.Println("InstanceType not found", instanceType)
 		}
+	}
+
+	if verbose {
+		w.Flush()
+		fmt.Println()
 	}
 
 	fmt.Printf("Instance Count: %d\n", total)
@@ -111,9 +129,12 @@ func prettyPrintGiB(size float64, iecFormat bool) string {
 }
 
 func init() {
+	rootCmd.AddCommand(ec2Cmd)
+
 	ec2Cmd.AddCommand(instancesCmd)
 	ec2Cmd.AddCommand(ebsCmd)
 
 	ec2Cmd.PersistentFlags().Bool("iec-format", false, "use iec size format(TiB instead of Tb)")
-	rootCmd.AddCommand(ec2Cmd)
+
+	instancesCmd.Flags().Bool("verbose", false, "print instance count in verbose mode")
 }

@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 	instances "github.com/yagonobre/ec2-instances"
 )
@@ -35,6 +37,11 @@ func getEC2Client() *ec2.EC2 {
 }
 
 func ec2Instances(cmd *cobra.Command, args []string) {
+	iecFormat, err := cmd.Flags().GetBool("iec-format")
+	if err != nil {
+		fmt.Println("invalid iec-format flag")
+	}
+
 	ec2Svc := getEC2Client()
 	res, err := ec2Svc.DescribeInstances(nil)
 	if err != nil {
@@ -69,10 +76,15 @@ func ec2Instances(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Printf("Instance Count: %d\n", total)
-	fmt.Printf("Total Memory: %.2f GiB\nTotal CPU: %d cores\n", totalMemory, totalCPU)
+	fmt.Printf("Total Memory: %s\nTotal CPU: %d cores\n", prettyPrintGiB(totalMemory, iecFormat), totalCPU)
 }
 
 func ec2EBS(cmd *cobra.Command, args []string) {
+	iecFormat, err := cmd.Flags().GetBool("iec-format")
+	if err != nil {
+		fmt.Println("invalid iec-format flag")
+	}
+
 	ec2Svc := getEC2Client()
 	res, err := ec2Svc.DescribeVolumes(nil)
 	if err != nil {
@@ -86,12 +98,22 @@ func ec2EBS(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Printf("Volume Count: %d\n", len(res.Volumes))
-	fmt.Printf("Volume Size: %d GiBs\n", total)
+	fmt.Printf("Volume Size: %s\n", prettyPrintGiB(float64(total), iecFormat))
+}
+
+func prettyPrintGiB(size float64, iecFormat bool) string {
+	sizeMib := int64(size * 1024.00)                //Size in MiB
+	sizeBigInt := big.NewInt(sizeMib * 1024 * 1024) //Size in Byte (big.Int)
+	if iecFormat {
+		return humanize.BigIBytes(sizeBigInt)
+	}
+	return humanize.BigBytes(sizeBigInt)
 }
 
 func init() {
 	ec2Cmd.AddCommand(instancesCmd)
 	ec2Cmd.AddCommand(ebsCmd)
 
+	ec2Cmd.PersistentFlags().Bool("iec-format", false, "use iec size format(TiB instead of Tb)")
 	rootCmd.AddCommand(ec2Cmd)
 }

@@ -39,5 +39,5 @@ github.com/jmespath/go-jmespath
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/yagonobre/ec2-instances v0.0.1
+# github.com/yagonobre/ec2-instances v0.2.0
 github.com/yagonobre/ec2-instances

@@ -20,6 +20,8 @@ github.com/yagonobre/ec2-instances v0.0.1 h1:tjnzVCS922h12ZttGClaEnD4QplgOLN1A8U
 github.com/yagonobre/ec2-instances v0.0.1/go.mod h1:Usk80IUs1DZeIIRezowAubym/uwtqT6KJlLJjAcgZfM=
 github.com/yagonobre/ec2-instances v0.2.0 h1:bDz191MDYZtHDG6e1dwYHSuVrGIBsNfyFCzfl2rtIDc=
 github.com/yagonobre/ec2-instances v0.2.0/go.mod h1:Usk80IUs1DZeIIRezowAubym/uwtqT6KJlLJjAcgZfM=
+github.com/yagonobre/ec2-instances v0.2.1 h1:cEbb8mYE30MAfAgGQr8Snh+wn2P9eccy84vpO7t5BAg=
+github.com/yagonobre/ec2-instances v0.2.1/go.mod h1:Usk80IUs1DZeIIRezowAubym/uwtqT6KJlLJjAcgZfM=
 golang.org/x/net v0.0.0-20181114220301-adae6a3d119a h1:gOpx8G595UYyvj8UK4+OFyY4rx037g3fmfhe5SasG3U=
 golang.org/x/net v0.0.0-20181114220301-adae6a3d119a/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=

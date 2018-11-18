@@ -22,8 +22,10 @@ type InstanceSize struct {
 	Memory       float64 `json:"memory"`
 }
 
+const instancesPath = "hack/instances.json"
+
 func main() {
-	instancesFileName, err := os.Open("instances.json")
+	instancesFileName, err := os.Open(instancesPath)
 	checkError(err)
 	defer instancesFileName.Close()
 
